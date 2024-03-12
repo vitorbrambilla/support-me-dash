@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
@@ -19,7 +20,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectTrigger,
@@ -28,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 import { CalendarIcon, PersonStandingIcon } from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -84,6 +90,9 @@ export default function SignupPage() {
   };
 
   const accountType = form.watch("accountType");
+
+  const dobFromDate = new Date();
+  dobFromDate.setFullYear(dobFromDate.getFullYear() - 100);
 
   return (
     <>
@@ -197,12 +206,33 @@ export default function SignupPage() {
                             variant="outline"
                             className="normal-case flex justify-between pr-1"
                           >
-                            <span>Pick a date</span>
+                            {!!field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
 
                             <CalendarIcon />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
+
+                      <PopoverContent align="start" className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          defaultMonth={field.value}
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          fixedWeeks
+                          weekStartsOn={1}
+                          fromDate={dobFromDate}
+                          toDate={new Date()}
+                          // disabled={(date) => {
+                          //   return date.getDay() === 0 || date.getDay() === 6;
+                          // }}
+                          captionLayout="dropdown-buttons"
+                        />
+                      </PopoverContent>
                     </Popover>
 
                     <FormMessage />
