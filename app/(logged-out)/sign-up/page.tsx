@@ -39,22 +39,11 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-const formSchema = z
+const accountTypeSchema = z
   .object({
-    email: z.string().email(),
     accountType: z.enum(["personal", "company"]),
     companyName: z.string().optional(),
     numberOfEmployees: z.coerce.number().optional(),
-    dob: z.date().refine((date) => {
-      const today = new Date();
-      const eighteenYearsAgo = new Date(
-        today.getFullYear() - 18,
-        today.getMonth(),
-        today.getDate()
-      );
-
-      return date <= eighteenYearsAgo;
-    }, "You must be at least 18 years old"),
   })
   .superRefine((data, ctx) => {
     if (data.accountType === "company" && !data.companyName) {
@@ -76,6 +65,42 @@ const formSchema = z
       });
     }
   });
+
+const passwordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, "Password must contain at least 8 characters")
+      .refine((password) => {
+        // must contain at least 1 special character and 1 uppercase character
+        return /^(?=.*[!@#$%^&*])(?=.*[A-Z]).*$/.test(password);
+      }, "Password must contain at least 1 special character and 1 uppercase letter"),
+    passwordConfirm: z.string(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.password !== data.passwordConfirm) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["passwordConfirm"],
+        message: "Passwords do not match",
+      });
+    }
+  });
+
+const baseSchema = z.object({
+  email: z.string().email(),
+  dob: z.date().refine((date) => {
+    const today = new Date();
+    const eighteedYearsAgo = new Date(
+      today.getFullYear() - 18,
+      today.getMonth(),
+      today.getDate()
+    );
+    return date <= eighteedYearsAgo;
+  }, "You must be at least 18 years old"),
+});
+
+const formSchema = baseSchema.and(passwordSchema).and(accountTypeSchema);
 
 export default function SignupPage() {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -234,6 +259,46 @@ export default function SignupPage() {
                         />
                       </PopoverContent>
                     </Popover>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+
+                    <FormControl>
+                      <Input
+                        placeholder="••••••••"
+                        type="password"
+                        {...field}
+                      />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="passwordConfirm"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+
+                    <FormControl>
+                      <Input
+                        placeholder="••••••••"
+                        type="password"
+                        {...field}
+                      />
+                    </FormControl>
 
                     <FormMessage />
                   </FormItem>
