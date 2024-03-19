@@ -1,6 +1,6 @@
 "use client";
 
-import { PieChart, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, ResponsiveContainer, Cell, Tooltip } from "recharts";
 
 export default function TeamDistributionChart() {
   const data = [
@@ -23,7 +23,18 @@ export default function TeamDistributionChart() {
 
   return (
     <ResponsiveContainer width="100%" height={150}>
-      <PieChart></PieChart>
+      <PieChart>
+        <Tooltip
+          labelClassName="font-bold"
+          wrapperClassName="dark:[&_.recharts-tooltip-item]:!text-white [&_.recharts-tooltip-item]:!text-black !text-sm dark:!bg-black rounded-md dark:!border-border"
+        />
+
+        <Pie data={data} dataKey="value" nameKey="name">
+          {data.map((item, i) => (
+            <Cell key={i} fill={item.color} />
+          ))}
+        </Pie>
+      </PieChart>
     </ResponsiveContainer>
   );
 }
